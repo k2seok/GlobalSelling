@@ -4,10 +4,16 @@
     <title>Bootstrap Example</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://github.com/ethereum/web3.js/blob/develop/dist/web3.min.js"></script>
+
+
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">-->
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>-->
     <script type="text/javascript">
         var ABI = [
             {
@@ -267,34 +273,66 @@
                 "type": "event"
             }
         ];
-        var address = "0x16784a9abf8cfefcbb4ba9a29e2e4ef1fd880061";
+        var address = "0xbcc97182bf318488ed4e6b4b1bb1152528e6f4d8";
+        var account;
+        var contract;
+        var balance = 0;
+
+
         $(document).ready(function () {
-            <!--name value const -->
-            //names = ['empty', 'alice', 'bob', 'charlie', 'dominic'];
             web3 = new Web3(web3.currentProvider);
-            var contract = web3.eth.contract(ABI).at(address)
 
             // accounts = ["0x88CD6919E911911B4cB302AB0404c0b10519B625",
             //     "0x0180cE41910b082B3993629c082F17f57b09e2E7"];
 
-            var account = web3.eth.accounts;
+            account = web3.eth.accounts;
+            contract = web3.eth.contract(ABI).at(address);
 
-            alert('login : address1: ' + account[0]);
 
-            // var user = account[0];
-            if(account !== '')
-            {
-                var contract = web3.eth.contract(ABI).at(address)
+            getAllEvents(contract);
 
-                var area_user = document.getElementById('area_login');
-                contract
-                area_user.innerHTML = '<h1 class="text-center" id="user1">로그인되었습니다.</h1>';
-                area_user.innerHTML += '<input type="inpupt" class="form-control" name="to" placeholder="받을 사람">';
-            }
-
+            contract.balanceOf(account[0],function(err,res){
+                balance = res;
+            });
         });
 
-        function product_register() {
+        function getAllEvents(contract) {
+            var area_log = document.getElementById('area_log');
+            area_log.innerHTML = '<ul class="list-group list-inline">';
+            contract.allEvents({fromBlock: 0, toBlock: 'latest'}).get(function (err, res) {
+                for (idx in res) {
+                    var row = '<li class="list-group-item">';
+                    row += res[idx].args.from + '이' + res[idx].args.to + '에게' +
+                        res[idx].args.value + 'Gold 송금';
+                    // alert(row);
+                    area_log.innerHTML += row + '</li>';
+                }
+            })
+            area_log.innerHTML += '</ul>';
+        }
+
+        function login(){
+            var area_user = document.getElementById('area_login');
+
+            // contract
+            area_user.innerHTML = '<h1 class="text-center" id="user1">로그인되었습니다.</h1>';
+            area_user.innerHTML += '<span class="label label-default">Address:   ' + account[0] + '</span><p/>';
+            area_user.innerHTML += '<label class="">보유 현황 :  '  + balance + '  G' +
+                '<P/>\n' +
+                '<span class="">송 금</span><input id="product_id" placeholder="전송할 수" class="form-control"\n' +
+                'type="number">\n' +
+                '<p/>\n' +
+                '<button onclick="sendGold()" type="submit" class="btn-block btn btn-primary">전송</button>';
+
+        }
+
+        function sendGold() {
+            var count = document.getElementById('product_id').value;
+            var to = "0x0180cE41910b082B3993629c082F17f57b09e2E7";
+            contract.transfer( to, count, function (err, res) {
+                // res[msg.sender]  -= count;
+                // res[_to] += count;
+            })
 
         }
 
@@ -311,56 +349,50 @@
     }
 
     ul.list-group.list-group-striped li:nth-of-type(even) {
+        background: #aaaaaa;
+
     }
 
     h2 {
         text-align: center;
 
     }
+
+
 </style>
 <body>
 
 <div class="container">
-    <h1 class="text-center">G</h1>
+    <h1 class="text-center">Gold Bank</h1>
     <div class="row">
         <div class="col col-lg-6 col-md-6 col-sm-12">
-            <div id="area_login">
+            <div id="area_login" class="">
                 <h1 class="text-center" id="user1">로그인하세요</h1>
-
+                <button id="login" class="button button-info" onclick="login()">Log In</button>
             </div>
-        </div>
-        <div class="col col-lg-6 col-md-6 col-sm-12">
-            <h1 class="text-center" id="user2">상품 등록</h1>
+            <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col col-lg-6 col-md-6 col-sm-12">-->
+            <!--<h1 class="text-center" id="user2">거래</h1>-->
 
-            <span class="label label-info">상품명 </span><input id="product_name" placeholder="상품명" class="form-control"
-                                                             type="text">
-            <span class="label label-info">상품ID </span><input id="product_id" placeholder="상품ID" class="form-control"
-                                                              type="text">
-            <span class="label label-deault">이미지  </span><input id="product_image" type="file">
-            <button onclick="product_register()" type="submit" class="btn-block btn btn-primary">등록</button>
 
         </div>
-    </div>
 
-    <p/>
+        <p/>
 
-    <div class="row">
-        <div class="col col-lg-6 col-md-6 col-sm-12">
-            <h1 class="text-center" id="user3">거래중인 상품</h1>
-
-            <h2>구매할 상품의 수량을 up</h2>
-            <div id="list_sell">
-            </div>
-        </div>
+        <!--<div class="col col-lg-6 col-md-6 col-sm-12">-->
+        <h1 class="text-center" id="user3">거래 현황</h1>
+        <div class="col col-lg-6 col-md-6 col-sm-12" id="area_log"></div>
+        <!--</div>-->
 
 
-        <div class="col col-lg-6 col-md-6 col-sm-12">
-            <h1 class="text-center" id="user4">내가 구입한 상품</h1>
+        <!--<div class="col col-lg-6 col-md-6 col-sm-12">-->
+        <!--<h1 class="text-center" id="user4">내가 구입한 상품</h1>-->
 
-            <h2>구매한 품목</h2>
-            <div id="list_buy">
-            </div>
-        </div>
+        <!--<h2>구매한 품목</h2>-->
+        <!--<div id="list_buy">-->
+        <!--</div>-->
+        <!--</div>-->
 
     </div>
 </div>
